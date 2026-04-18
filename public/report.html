@@ -359,7 +359,7 @@
                 if (isVideo) {
                     // Show video
                     mediaTitle.textContent = '🎥 Video Evidence';
-                    videoSource.src = mediaPath;
+                    videoSource.src = mediaPath.startsWith('http') ? mediaPath : 'https://nagar-samadhan1-o.onrender.com' + mediaPath;
                     
                     // Try to determine video type
                     if (mediaPath.includes('.mp4')) {
@@ -376,7 +376,7 @@
                 } else {
                     // Show image
                     mediaTitle.textContent = '📷 Photo Evidence';
-                    reportImage.src = mediaPath;
+                    reportImage.src = mediaPath.startsWith('http') ? mediaPath : 'https://nagar-samadhan1-o.onrender.com' + mediaPath;
                     reportImage.classList.remove('hidden');
                     reportVideo.classList.add('hidden');
                     
