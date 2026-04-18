@@ -295,7 +295,7 @@
         }
         
         try {
-            const response = await fetch(`https://nagar-samadhaan.onrender.com/api/reports/${id}`);
+            const response = await fetch(`https://nagar-samadhan1-o.onrender.com/api/reports/${id}`);
             
             if (!response.ok) {
                 throw new Error('Report not found');
@@ -637,7 +637,7 @@
         
         try {
             // Check initial vote status
-            const voteResponse = await fetch(`https://nagar-samadhaan.onrender.com/api/reports/${reportId}/vote-status`);
+            const voteResponse = await fetch(`https://nagar-samadhan1-o.onrender.com/api/reports/${reportId}/vote-status`);
             const voteData = await voteResponse.json();
             
             // Update UI with initial state
@@ -673,7 +673,7 @@
                 </svg>
             `;
             
-            const response = await fetch(`https://nagar-samadhaan.onrender.com/api/reports/${currentReportId}/upvote`, {
+            const response = await fetch(`https://nagar-samadhan1-o.onrender.com/api/reports/${currentReportId}/upvote`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

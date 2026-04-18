@@ -204,7 +204,7 @@ async function syncReports() {
       
       for (const report of reports) {
         try {
-          const response = await fetch('https://nagar-samadhaan.onrender.com/api/reports', {
+          const response = await fetch('https://nagar-samadhan1-o.onrender.com/api/reports', {
             method: 'POST',
             body: report.formData
           });
