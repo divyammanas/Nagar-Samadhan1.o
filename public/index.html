@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nagar Samadhan</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f97316, #16a34a);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .logo { font-size: 48px; margin-bottom: 12px; }
+    h1 { font-size: 28px; color: #1f2937; margin-bottom: 8px; }
+    p { color: #6b7280; margin-bottom: 32px; font-size: 15px; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn-citizen {
+      background: #f97316;
+      color: white;
+    }
+    .btn-admin {
+      background: #16a34a;
+      color: white;
+    }
+    .footer { margin-top: 24px; font-size: 13px; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🏙️</div>
+    <h1>Nagar Samadhan</h1>
+    <p>Smart civic issue reporting for a better city</p>
+    <a href="/citizen.html" class="btn btn-citizen">🙋 Report an Issue</a>
+    <a href="/admin-login.html" class="btn btn-admin">🔐 Admin Dashboard</a>
+    <div class="footer">Smart India Hackathon 2025</div>
+  </div>
+</body>
+</html>

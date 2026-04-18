@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Nagar Samadhan - Citizen Portal</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#F97316">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nagar Samadhan">
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/notifications-simple.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F7FAFC;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Allow text selection for inputs and content areas */
+        input, textarea, .selectable {
+            -webkit-user-select: text;
+            -khtml-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        /* Touch-friendly buttons */
+        .touch-button {
+            min-height: 48px;
+            min-width: 48px;
+            touch-action: manipulation;
+        }
+        
+        /* Prevent zoom on input focus on iOS */
+        input, select, textarea {
+            font-size: 16px;
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .form-step {
+                padding: 1rem;
+            }
+            
+            .progress-bar-step {
+                width: 2rem;
+                height: 2rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Larger touch targets for mobile */
+            button, .btn {
+                min-height: 48px;
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            /* Better spacing for mobile forms */
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        .hero-bg {
+            background-image:
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8)),
+                url('https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .form-step {
+            display: none;
+        }
+        .form-step-active {
+            display: block;
+        }
+        .progress-bar-step {
+            transition: all 0.3s ease;
+            border: 2px solid #E5E7EB;
+        }
+        .progress-bar-step-active {
+            background-color: #F97316 !important; /* Saffron - Active Step */
+            border-color: #F97316 !important;
+            color: white !important;
+        }
+        .progress-bar-step-complete {
+            background-color: #16A34A !important; /* Green - Completed Step */
+            border-color: #16A34A !important;
+            color: white !important;
+        }
+        .status-submitted { background-color: #F97316; color: white; }
+        .status-acknowledged { background-color: #3B82F6; color: white; }
+        .status-in-progress { background-color: #FACC15; color: #4A5568; }
+        .status-resolved { background-color: #16A34A; color: white; }
+    </style>
+</head>
+<body class="hero-bg">
+    
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0">
+        <nav class="container mx-auto px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold text-gray-800">
+                    <span class="text-orange-500">Nagar</span><span class="text-green-600"> Samadhan</span>
+                </div>
+                <div class="flex space-x-2 sm:space-x-3">
+                    <button id="trackReportBtn" class="touch-button bg-green-600 text-white font-semibold px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base rounded-lg hover:bg-green-700 transition duration-300 active:scale-95">
+                        <span class="hidden sm:inline">Track Report</span>
+                        <span class="sm:hidden">Track</span>
+                    </button>
+                    <button id="homeBtn" class="touch-button bg-gray-600 text-white font-semibold px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base rounded-lg hover:bg-gray-700 transition duration-300 active:scale-95">
+                        <span class="hidden sm:inline">Home</span>
+                        <span class="sm:hidden">🏠</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    
+    <main class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <section id="heroSection" class="text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-gray-800 leading-tight">
+                Our City, <span class="text-orange-500">Our Voice,</span> <span class="text-green-600">Our Responsibility.</span>
+            </h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                Report civic issues like garbage, potholes, or streetlight outages in Greater Noida, Uttar Pradesh, and help us make our city better, together.
+            </p>
+            <button id="reportIssueBtn" class="touch-button mt-8 bg-orange-500 text-white font-bold text-lg px-8 py-4 rounded-lg shadow-lg hover:bg-orange-600 transition-transform transform hover:scale-105 active:scale-95 duration-300">
+                Report an Issue Now
+            </button>
+        </section>
+
+        
+        <section id="complaintFormSection" class="hidden mt-12 max-w-4xl mx-auto bg-white/90 p-8 rounded-2xl shadow-2xl backdrop-blur-lg">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Register a New Complaint</h2>
+
+            
+            <div class="flex items-center justify-center mb-6 sm:mb-8 px-2">
+                <div class="flex items-center">
+                    <div id="step-indicator-1" class="progress-bar-step progress-bar-step-active w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">1</div>
+                    <div class="text-xs sm:text-sm ml-1 sm:ml-2 mr-2 sm:mr-4 hidden sm:block">Personal Info</div>
+                    <div class="text-xs ml-1 mr-2 sm:hidden">Info</div>
+                </div>
+                <div class="flex-auto border-t-2 border-gray-300 transition duration-500 ease-in-out mx-1 sm:mx-2"></div>
+                <div class="flex items-center">
+                    <div id="step-indicator-2" class="progress-bar-step bg-gray-300 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-gray-600 font-bold text-xs sm:text-sm ml-2 sm:ml-4">2</div>
+                    <div class="text-xs sm:text-sm ml-1 sm:ml-2 mr-2 sm:mr-4 hidden sm:block">Issue Details</div>
+                    <div class="text-xs ml-1 mr-2 sm:hidden">Details</div>
+                </div>
+                 <div class="flex-auto border-t-2 border-gray-300 transition duration-500 ease-in-out mx-1 sm:mx-2"></div>
+                <div class="flex items-center">
+                    <div id="step-indicator-3" class="progress-bar-step bg-gray-300 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-gray-600 font-bold text-xs sm:text-sm ml-2 sm:ml-4">3</div>
+                    <div class="text-xs sm:text-sm ml-1 sm:ml-2 hidden sm:block">Submit</div>
+                    <div class="text-xs ml-1 sm:hidden">Submit</div>
+                </div>
+            </div>
+
+            <form id="complaintForm" novalidate>
+                
+                <div id="step-1" class="form-step form-step-active">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Step 1: Your Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="e.g., Ramesh Kumar">
+                        </div>
+                        <div>
+                            <label for="mobileNumber" class="block text-sm font-medium text-gray-700">Mobile Number <span class="text-red-500">*</span></label>
+                            <input type="tel" id="mobileNumber" name="mobileNumber" required pattern="[0-9]{10}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="e.g., 9876543210">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="idNumber" class="block text-sm font-medium text-gray-700">Aadhaar / PAN Number (for verification) <span class="text-red-500">*</span></label>
+                            <input type="text" id="idNumber" name="idNumber" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="Enter your 12-digit Aadhaar or 10-digit PAN">
+                        </div>
+                    </div>
+                    <div class="mt-6 sm:mt-8 text-center sm:text-right">
+                        <button type="button" class="next-step-btn touch-button bg-blue-600 text-white font-semibold px-8 py-3 sm:px-6 sm:py-2 rounded-lg hover:bg-blue-700 transition duration-300 active:scale-95 w-full sm:w-auto">Next →</button>
+                    </div>
+                </div>
+
+                
+                <div id="step-2" class="form-step">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Step 2: Issue Details</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Upload Photo/Video Evidence <span class="text-red-500">*</span></label>
+                            <div class="mt-2 space-y-4">
+                                
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" id="camera-photo-btn" class="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        📷 Take Photo
+                                    </button>
+                                    <button type="button" id="camera-video-btn" class="flex items-center px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                        </svg>
+                                        🎥 Record Video
+                                    </button>
+                                    <label for="file-upload" class="flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm cursor-pointer">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                        📁 Choose File
+                                    </label>
+                                </div>
+                                
+                                
+                                <div id="upload-area" class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-orange-400 transition-colors">
+                                    <div class="space-y-1 text-center">
+                                        <svg id="upload-icon" class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                        <div class="flex text-sm text-gray-600"><span>Drag and drop files here, or use buttons above</span></div>
+                                        <p class="text-xs text-gray-500">📷 Images: PNG, JPG, GIF up to 10MB</p>
+                                        <p class="text-xs text-gray-500">🎥 Videos: MP4, MOV, AVI up to 20MB</p>
+                                        <p id="file-name" class="text-sm font-medium text-green-600 hidden"></p>
+                                    </div>
+                                </div>
+                                <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/*,video/*" required>
+                            </div>
+                            
+                            <div id="media-preview" class="mt-4 hidden relative">
+                                <div class="relative inline-block">
+                                    <img id="preview-img" class="max-w-full h-48 rounded-lg shadow-md hidden" alt="Preview">
+                                    <video id="preview-video" class="max-w-full h-48 rounded-lg shadow-md hidden" controls>
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <button type="button" id="remove-media" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="issueCategory" class="block text-sm font-medium text-gray-700">Problem Category <span class="text-red-500">*</span></label>
+                            <select id="issueCategory" name="issueCategory" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                                <option value="">Select a category...</option>
+                                <option value="Illegal Dumping">Illegal Dumping</option>
+                                <option value="Public Health and Sanitation">Public Health and Sanitation</option>
+                                <option value="Road Repair / Potholes">Road Repair / Potholes</option>
+                                <option value="Streetlight Malfunction">Streetlight Malfunction</option>
+                                <option value="Water Leakage / Sewage">Water Leakage / Sewage</option>
+                                <option value="Public Space Obstruction">Public Space Obstruction</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div id="otherCategoryContainer" class="hidden">
+                            <label for="otherCategory" class="block text-sm font-medium text-gray-700">Please specify other category <span class="text-red-500">*</span></label>
+                            <input type="text" id="otherCategory" name="otherCategory" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="Please describe the type of issue...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">GPS Location (Optional)</label>
+                            <p class="text-xs text-gray-600 mb-3">📍 Use GPS for precise location or fill address details below</p>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <button type="button" id="getCurrentLocationBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600 transition-colors flex items-center justify-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    <span class="hidden sm:inline">Get My Location</span>
+                                    <span class="sm:hidden">GPS</span>
+                                </button>
+                                <button type="button" id="resetLocationBtn" class="bg-gray-500 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-600 transition-colors hidden">
+                                    Reset
+                                </button>
+                            </div>
+                            <div id="coordinates-display" class="mt-2 hidden text-xs text-green-600">
+                                <p>📍 <span id="lat-display"></span>, <span id="lng-display"></span></p>
+                            </div>
+                        </div>
+                        
+                        
+                        <div id="manualAddressContainer" class="md:col-span-2">
+                            <div id="manualAddressCard" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-blue-800 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <span id="addressFieldTitle">Address Information</span>
+                                </h4>
+                                <p id="addressFieldSubtext" class="text-xs text-blue-700 mb-3">📍 Provide your address details below. If you use GPS location above, these fields will be automatically filled or disabled.</p>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="manualCity" class="block text-xs font-medium text-gray-700">City <span class="text-red-500">*</span></label>
+                                        <input type="text" id="manualCity" name="manualCity" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm" placeholder="e.g., Greater Noida">
+                                    </div>
+                                    <div>
+                                        <label for="manualState" class="block text-xs font-medium text-gray-700">State <span class="text-red-500">*</span></label>
+                                        <input type="text" id="manualState" name="manualState" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm" placeholder="e.g., Uttar Pradesh">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label for="manualAddress" class="block text-xs font-medium text-gray-700">Detailed Address <span class="text-red-500">*</span></label>
+                                        <textarea id="manualAddress" name="manualAddress" rows="2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm" placeholder="e.g., Sector 10, Near Alpha Commercial Belt, Opposite Metro Station"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="description" class="block text-sm font-medium text-gray-700">Short Explanation <span class="text-red-500">*</span></label>
+                            <textarea id="description" name="description" rows="3" required minlength="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="Describe the issue in brief. e.g., 'big garbage pile near temple' or 'streetlight not working for 3 days'"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between">
+                        <button type="button" class="prev-step-btn touch-button bg-gray-500 text-white font-semibold px-6 py-3 sm:py-2 rounded-lg hover:bg-gray-600 transition duration-300 active:scale-95 w-full sm:w-auto">← Previous</button>
+                        <button type="button" class="next-step-btn touch-button bg-green-600 text-white font-semibold px-6 py-3 sm:py-2 rounded-lg hover:bg-green-700 transition duration-300 shadow-lg active:scale-95 w-full sm:w-auto">Next →</button>
+                    </div>
+                </div>
+
+                
+                <div id="step-3" class="form-step text-center">
+                     <h3 class="text-xl font-semibold mb-4 text-gray-700">Step 3: Confirm and Submit</h3>
+                     <div id="summary" class="text-left bg-green-50 p-6 rounded-lg border-2 border-green-200">
+                        <p class="text-green-800"><strong class="font-semibold">Name:</strong> <span id="summary-name"></span></p>
+                        <p class="text-green-800 mt-2"><strong class="font-semibold">Mobile:</strong> <span id="summary-mobile"></span></p>
+                        <p class="text-green-800 mt-2"><strong class="font-semibold">Category:</strong> <span id="summary-category"></span></p>
+                        <p class="text-green-800 mt-2"><strong class="font-semibold">Location:</strong> <span id="summary-location"></span></p>
+                        <div id="summary-manual-address" class="hidden mt-2">
+                            <p class="text-green-800"><strong class="font-semibold">Address:</strong> <span id="summary-address-details"></span></p>
+                        </div>
+                        <p class="text-green-800 mt-2"><strong class="font-semibold">Description:</strong> <span id="summary-description"></span></p>
+                     </div>
+                     <p class="mt-4 text-sm text-green-700">Please review your details. By submitting, you confirm that the information provided is accurate.</p>
+                     <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between">
+                        <button type="button" class="prev-step-btn touch-button bg-gray-500 text-white font-semibold px-6 py-3 sm:py-2 rounded-lg hover:bg-gray-600 transition duration-300 active:scale-95 w-full sm:w-auto">← Previous</button>
+                        <button type="submit" class="touch-button bg-green-600 text-white font-bold px-8 py-3 sm:py-2 rounded-lg hover:bg-green-700 transition duration-300 shadow-lg transform hover:scale-105 active:scale-95 w-full sm:w-auto">✅ Submit Complaint</button>
+                    </div>
+                </div>
+            </form>
+
+            <div id="successMessage" class="hidden text-center py-10 bg-green-50 rounded-xl border-2 border-green-200">
+                <svg class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="mt-4 text-2xl font-bold text-green-800">Thank You!</h3>
+                <p class="mt-2 text-green-700">Your complaint has been successfully submitted.</p>
+                <p class="mt-2 text-green-700">Your Complaint ID is: <strong id="complaintId" class="text-green-800">LOC-1737050400123-A1B2C</strong></p>
+                
+                
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-left">
+                            <p class="text-sm font-medium text-blue-800">📍 Location Information</p>
+                            <p class="text-xs text-blue-700 mt-1">When you track this report, you'll be able to see the location details and map (if GPS was enabled) where this issue was reported.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="reportAnotherBtn" class="touch-button mt-6 bg-green-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-green-700 transition duration-300 active:scale-95">Report Another Issue</button>
+            </div>
+        </section>
+
+        
+        <section id="trackReportSection" class="hidden mt-12 max-w-2xl mx-auto bg-white/90 p-8 rounded-2xl shadow-2xl backdrop-blur-lg">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Track Your Report</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="trackingId" class="block text-sm font-medium text-gray-700 mb-2">Enter Report ID</label>
+                    <input type="text" id="trackingId" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="e.g., LOC-1737050400123-A1B2C">
+                </div>
+                <button id="trackBtn" class="touch-button w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition duration-300 active:scale-95">
+                    Track Report
+                </button>
+                <button id="backToHomeBtn" class="touch-button w-full bg-gray-500 text-white font-semibold py-2 rounded-lg hover:bg-gray-600 transition duration-300 active:scale-95">
+                    Back to Home
+                </button>
+            </div>
+        </section>
+
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reportIssueBtn = document.getElementById('reportIssueBtn');
+            const trackReportBtn = document.getElementById('trackReportBtn');
+            const reportAnotherBtn = document.getElementById('reportAnotherBtn');
+            const trackBtn = document.getElementById('trackBtn');
+            const backToHomeBtn = document.getElementById('backToHomeBtn');
+
+            const heroSection = document.getElementById('heroSection');
+            const complaintFormSection = document.getElementById('complaintFormSection');
+            const trackReportSection = document.getElementById('trackReportSection');
+            const complaintForm = document.getElementById('complaintForm');
+            const successMessage = document.getElementById('successMessage');
+
+            const nextStepBtns = document.querySelectorAll('.next-step-btn');
+            const prevStepBtns = document.querySelectorAll('.prev-step-btn');
+            const formSteps = document.querySelectorAll('.form-step');
+            
+            // Form Elements
+            const descriptionInput = document.getElementById('description');
+            const issueCategorySelect = document.getElementById('issueCategory');
+            const otherCategoryContainer = document.getElementById('otherCategoryContainer');
+            const otherCategoryInput = document.getElementById('otherCategory');
+            
+            // --- Issue Category Functionality ---
+            issueCategorySelect.addEventListener('change', function() {
+                if (this.value === 'Other') {
+                    otherCategoryContainer.classList.remove('hidden');
+                    otherCategoryInput.required = true;
+                } else {
+                    otherCategoryContainer.classList.add('hidden');
+                    otherCategoryInput.required = false;
+                    otherCategoryInput.value = '';
+                }
+            });
+            
+            // Enhanced media upload elements
+            const fileInput = document.getElementById('file-upload');
+            const fileName = document.getElementById('file-name');
+            const mediaPreview = document.getElementById('media-preview');
+            const previewImg = document.getElementById('preview-img');
+            const previewVideo = document.getElementById('preview-video');
+            const uploadIcon = document.getElementById('upload-icon');
+            const uploadArea = document.getElementById('upload-area');
+            const removeMediaBtn = document.getElementById('remove-media');
+            
+            // Camera elements
+            const cameraPhotoBtn = document.getElementById('camera-photo-btn');
+            const cameraVideoBtn = document.getElementById('camera-video-btn');
+            const cameraModal = document.getElementById('camera-modal');
+            const cameraModalTitle = document.getElementById('camera-modal-title');
+            const cameraStream = document.getElementById('camera-stream');
+            const cameraCanvas = document.getElementById('camera-canvas');
+            const captureBtn = document.getElementById('capture-btn');
+            const captureBtnText = document.getElementById('capture-btn-text');
+            const stopRecordingBtn = document.getElementById('stop-recording-btn');
+            const cancelCameraBtn = document.getElementById('cancel-camera');
+            const closeCameraModalBtn = document.getElementById('close-camera-modal');
+            
+            let mediaRecorder = null;
+            let recordedChunks = [];
+            let currentStream = null;
+            let isRecording = false;
+            
+            // Geolocation elements
+            const getCurrentLocationBtn = document.getElementById('getCurrentLocationBtn');
+            const resetLocationBtn = document.getElementById('resetLocationBtn');
+            const coordinatesDisplay = document.getElementById('coordinates-display');
+            const latDisplay = document.getElementById('lat-display');
+            const lngDisplay = document.getElementById('lng-display');
+            
+            // Manual address elements
+            const manualAddressContainer = document.getElementById('manualAddressContainer');
+            const manualAddressCard = document.getElementById('manualAddressCard');
+            const addressFieldTitle = document.getElementById('addressFieldTitle');
+            const addressFieldSubtext = document.getElementById('addressFieldSubtext');
+            const manualCityInput = document.getElementById('manualCity');
+            const manualStateInput = document.getElementById('manualState');
+            const manualAddressInput = document.getElementById('manualAddress');
+            
+            let userLatitude = null;
+            let userLongitude = null;
+            let gpsLocationCaptured = false;
+            
+            // --- Enhanced Photo Upload with Drag & Drop and Remove ---
+            
+            // Handle file selection (both drag/drop and click)
+            function handleFileSelection(file) {
+                if (!file) {
+                    notifications.fileError('No file selected.');
+                    return;
+                }
+                
+                // Check if it's an image
+                if (file.type.startsWith('image/')) {
+                    // Validate image file size (10MB limit)
+                    if (file.size > 10 * 1024 * 1024) {
+                        notifications.fileError('Image size must be less than 10MB. Please choose a smaller image.');
+                        return;
+                    }
+                    
+                    // Show file name
+                    fileName.textContent = `📷 Selected: ${file.name}`;
+                    fileName.classList.remove('hidden');
+                    
+                    // Show image preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        previewImg.classList.remove('hidden');
+                        previewVideo.classList.add('hidden');
+                        mediaPreview.classList.remove('hidden');
+                        uploadIcon.classList.add('text-green-500');
+                        
+                        // Update upload area appearance
+                        uploadArea.classList.add('border-green-400', 'bg-green-50');
+                        uploadArea.classList.remove('border-gray-300');
+                    };
+                    reader.readAsDataURL(file);
+                    
+                // Check if it's a video
+                } else if (file.type.startsWith('video/')) {
+                    // Validate video file size (20MB limit)
+                    if (file.size > 20 * 1024 * 1024) {
+                        notifications.fileError('Video size must be less than 20MB. Please choose a smaller video.');
+                        return;
+                    }
+                    
+                    // Show file name
+                    fileName.textContent = `🎥 Selected: ${file.name}`;
+                    fileName.classList.remove('hidden');
+                    
+                    // Show video preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewVideo.src = e.target.result;
+                        previewVideo.classList.remove('hidden');
+                        previewImg.classList.add('hidden');
+                        mediaPreview.classList.remove('hidden');
+                        uploadIcon.classList.add('text-green-500');
+                        
+                        // Update upload area appearance
+                        uploadArea.classList.add('border-green-400', 'bg-green-50');
+                        uploadArea.classList.remove('border-gray-300');
+                    };
+                    reader.readAsDataURL(file);
+                    
+                } else {
+                    notifications.fileError('Please select a valid image (PNG, JPG, GIF) or video (MP4, MOV, AVI) file.');
+                }
+            }
+            
+            // Clear media selection
+            function clearMediaSelection() {
+                fileInput.value = '';
+                fileName.classList.add('hidden');
+                mediaPreview.classList.add('hidden');
+                previewImg.classList.add('hidden');
+                previewVideo.classList.add('hidden');
+                previewImg.src = '';
+                previewVideo.src = '';
+                uploadIcon.classList.remove('text-green-500');
+                
+                // Reset upload area appearance
+                uploadArea.classList.remove('border-green-400', 'bg-green-50', 'border-red-400');
+                uploadArea.classList.add('border-gray-300');
+            }
+            
+            // File input change handler
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleFileSelection(file);
+                } else {
+                    clearMediaSelection();
+                }
+            });
+            
+            // Remove media button handler
+            removeMediaBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearMediaSelection();
+            });
+            
+            // --- Camera Functionality ---
+            
+            // Take Photo button
+            cameraPhotoBtn.addEventListener('click', async function() {
+                try {
+                    // Check if getUserMedia is supported
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        notifications.error('Camera not supported on this device. Please use the file upload option.');
+                        return;
+                    }
+                    await openCamera('photo');
+                } catch (error) {
+                    console.warn('Camera access failed:', error);
+                    notifications.warning('Camera not available. Please use the "Choose File" option to upload a photo.');
+                }
+            });
+            
+            // Record Video button
+            cameraVideoBtn.addEventListener('click', async function() {
+                try {
+                    // Check if getUserMedia is supported
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        notifications.error('Camera not supported on this device. Please use the file upload option.');
+                        return;
+                    }
+                    await openCamera('video');
+                } catch (error) {
+                    console.warn('Camera access failed:', error);
+                    notifications.warning('Camera not available. Please use the "Choose File" option to upload a video.');
+                }
+            });
+            
+            // Open camera modal
+            async function openCamera(mode) {
+                try {
+                    // Request camera access
+                    currentStream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: mode === 'video' // Only request audio for video recording
+                    });
+                    
+                    // Set up modal
+                    cameraModalTitle.textContent = mode === 'photo' ? 'Take Photo' : 'Record Video';
+                    captureBtnText.textContent = mode === 'photo' ? 'Capture' : 'Start Recording';
+                    captureBtn.className = mode === 'photo' ? 
+                        'bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors' :
+                        'bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors';
+                    
+                    // Show/hide appropriate buttons
+                    captureBtn.classList.remove('hidden');
+                    stopRecordingBtn.classList.add('hidden');
+                    
+                    // Set camera stream
+                    cameraStream.srcObject = currentStream;
+                    
+                    // Show modal
+                    cameraModal.classList.remove('hidden');
+                    
+                    // Set up capture handler
+                    captureBtn.onclick = mode === 'photo' ? capturePhoto : startVideoRecording;
+                    
+                } catch (error) {
+                    console.error('Camera access error:', error);
+                    if (error.name === 'NotAllowedError') {
+                        notifications.error('Camera access denied. Please allow camera permissions and try again.');
+                    } else if (error.name === 'NotFoundError') {
+                        notifications.error('No camera found on this device.');
+                    } else {
+                        notifications.error('Unable to access camera: ' + error.message);
+                    }
+                }
+            }
+            
+            // Capture photo
+            function capturePhoto() {
+                const canvas = cameraCanvas;
+                const video = cameraStream;
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to blob
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        // Create file from blob
+                        const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                        
+                        // Set file to input and handle selection
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        fileInput.files = dt.files;
+                        
+                        handleFileSelection(file);
+                        
+                        // Close camera
+                        closeCamera();
+                        
+                        notifications.success('Photo captured successfully!');
+                    }
+                }, 'image/jpeg', 0.9);
+            }
+            
+            // Start video recording
+            function startVideoRecording() {
+                try {
+                    recordedChunks = [];
+                    mediaRecorder = new MediaRecorder(currentStream, {
+                        mimeType: 'video/webm;codecs=vp9' // Try VP9 first
+                    });
+                    
+                    mediaRecorder.ondataavailable = function(event) {
+                        if (event.data && event.data.size > 0) {
+                            recordedChunks.push(event.data);
+                        }
+                    };
+                    
+                    mediaRecorder.onstop = function() {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        
+                        // Create file from blob
+                        const file = new File([blob], `camera-video-${Date.now()}.webm`, { type: 'video/webm' });
+                        
+                        // Set file to input and handle selection
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        fileInput.files = dt.files;
+                        
+                        handleFileSelection(file);
+                        
+                        // Close camera
+                        closeCamera();
+                        
+                        notifications.success('Video recorded successfully!');
+                    };
+                    
+                    // Start recording
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    // Update UI
+                    captureBtn.classList.add('hidden');
+                    stopRecordingBtn.classList.remove('hidden');
+                    
+                    notifications.info('Video recording started...');
+                    
+                } catch (error) {
+                    console.error('Error starting video recording:', error);
+                    // Fallback to MP4 if WebM fails
+                    try {
+                        mediaRecorder = new MediaRecorder(currentStream, {
+                            mimeType: 'video/mp4'
+                        });
+                        mediaRecorder.start();
+                    } catch (fallbackError) {
+                        notifications.error('Video recording not supported on this device.');
+                    }
+                }
+            }
+            
+            // Stop video recording
+            stopRecordingBtn.addEventListener('click', function() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    
+                    // Update UI
+                    captureBtn.classList.remove('hidden');
+                    stopRecordingBtn.classList.add('hidden');
+                }
+            });
+            
+            // Close camera
+            function closeCamera() {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                    currentStream = null;
+                }
+                cameraModal.classList.add('hidden');
+                isRecording = false;
+            }
+            
+            // Close camera modal handlers
+            closeCameraModalBtn.addEventListener('click', closeCamera);
+            cancelCameraBtn.addEventListener('click', closeCamera);
+            
+            // Close modal when clicking outside
+            cameraModal.addEventListener('click', function(e) {
+                if (e.target === cameraModal) {
+                    closeCamera();
+                }
+            });
+            
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+                uploadArea.classList.remove('border-gray-300');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Only remove highlight if we're leaving the upload area entirely
+                if (!uploadArea.contains(e.relatedTarget)) {
+                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                    uploadArea.classList.add('border-gray-300');
+                }
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Reset appearance
+                uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                uploadArea.classList.add('border-gray-300');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    // Update the file input
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fileInput.files = dt.files;
+                    
+                    handleFileSelection(file);
+                }
+            });
+            
+            // --- Utility Functions ---
+            
+            
+            // --- Geolocation Functionality ---
+            
+            
+            getCurrentLocationBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    notifications.gpsError('Geolocation is not supported by this browser. Please enter your location manually.');
+                    return;
+                }
+                
+                getCurrentLocationBtn.textContent = 'Getting Location...';
+                getCurrentLocationBtn.disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    async function(position) {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                        gpsLocationCaptured = true;
+                        
+                        // Disable manual address fields since GPS was successful
+                        disableManualAddressFields();
+                        
+                        console.log(`📍 GPS captured - Lat: ${userLatitude}, Lng: ${userLongitude}`);
+                        
+                        // Validate coordinates are realistic (not 0,0 or obviously wrong)
+                        if (Math.abs(userLatitude) < 0.001 && Math.abs(userLongitude) < 0.001) {
+                            console.warn('⚠️ GPS returned suspicious coordinates (0,0 area)');
+                            throw new Error('GPS returned invalid coordinates. Please try again.');
+                        }
+                        
+                        // Update button to show processing
+                        getCurrentLocationBtn.innerHTML = `
+                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Detecting City...
+                        `;
+                        
+                        // Show reset button
+                        resetLocationBtn.classList.remove('hidden');
+                        
+                        // Try reverse geocoding to get city name
+                        let detectedLocation = null;
+                        try {
+                            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${userLatitude}&longitude=${userLongitude}&localityLanguage=en`, {
+                                timeout: 5000 // 5 second timeout
+                            });
+                            
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.city && data.principalSubdivision) {
+                                    detectedLocation = `${data.city}, ${data.principalSubdivision}`;
+                                }
+                            }
+                        } catch (error) {
+                            console.log('Reverse geocoding failed, continuing with coordinates only:', error);
+                        }
+                        
+                        // Update coordinates display
+                        if (detectedLocation) {
+                            coordinatesDisplay.innerHTML = `
+                                <div class="bg-green-50 border border-green-200 rounded p-2">
+                                    <p class="text-xs font-semibold text-green-800">📍 Location Captured Successfully</p>
+                                    <p class="text-xs text-green-700">${detectedLocation}</p>
+                                </div>
+                            `;
+                            
+                            getCurrentLocationBtn.innerHTML = `
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                ${detectedLocation.split(',')[0]} Located
+                            `;
+                        } else {
+                            coordinatesDisplay.innerHTML = `
+                                <div class="bg-green-50 border border-green-200 rounded p-2">
+                                    <p class="text-xs font-semibold text-green-800">📍 GPS Location Captured</p>
+                                    <p class="text-xs text-green-700">Your precise location has been recorded</p>
+                                </div>
+                            `;
+                            
+                            getCurrentLocationBtn.innerHTML = `
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Location Captured
+                            `;
+                        }
+                        
+                        // Show coordinates display
+                        coordinatesDisplay.classList.remove('hidden');
+                        
+                        getCurrentLocationBtn.disabled = false;
+                        getCurrentLocationBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                        getCurrentLocationBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+                    },
+                    function(error) {
+                        let message = 'Unable to get your location.';
+                        let suggestion = '';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = 'Location access denied by user.';
+                                suggestion = 'You can use the "Enter Address" button to manually specify your location.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = 'Location information is unavailable.';
+                                suggestion = 'Please use manual address entry instead.';
+                                break;
+                            case error.TIMEOUT:
+                                message = 'The request to get user location timed out.';
+                                suggestion = 'Try again or use manual address entry.';
+                                break;
+                        }
+                        
+                        // Show notification about GPS failure - manual fields are already available
+                        notifications.gpsError(`${message} You can use the address fields below to provide your location manually.`);
+                        
+                        // Ensure manual address fields are enabled
+                        enableManualAddressFields();
+                        
+                        // Reset button
+                        getCurrentLocationBtn.innerHTML = `
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Get Location
+                        `;
+                        getCurrentLocationBtn.disabled = false;
+                    },
+                    {
+                        enableHighAccuracy: true,  // Use GPS instead of network location
+                        timeout: 15000,            // Give more time for accurate GPS fix
+                        maximumAge: 0               // Don't use cached location
+                    }
+                );
+            });
+            
+            // --- Manual Address Functionality ---
+            
+            // Function to disable manual address fields when GPS is captured
+            function disableManualAddressFields() {
+                // Update visual state to show GPS is being used
+                manualAddressCard.className = 'bg-green-50 border border-green-200 rounded-lg p-4';
+                addressFieldTitle.innerHTML = `
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    GPS Location Captured`;
+                addressFieldTitle.className = 'text-sm font-medium text-green-800 mb-3 flex items-center';
+                addressFieldSubtext.textContent = '✅ GPS location has been captured successfully. Manual address fields are disabled.';
+                addressFieldSubtext.className = 'text-xs text-green-700 mb-3';
+                
+                // Disable the input fields
+                manualCityInput.disabled = true;
+                manualStateInput.disabled = true;
+                manualAddressInput.disabled = true;
+                
+                // Add disabled styling
+                manualCityInput.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                manualStateInput.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                manualAddressInput.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                
+                // Remove required attributes since GPS is available
+                manualCityInput.required = false;
+                manualStateInput.required = false;
+                manualAddressInput.required = false;
+            }
+            
+            // Function to enable manual address fields when GPS is not available
+            function enableManualAddressFields() {
+                gpsLocationCaptured = false;
+                
+                // Reset visual state to normal
+                manualAddressCard.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4';
+                addressFieldTitle.innerHTML = `
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Address Information`;
+                addressFieldTitle.className = 'text-sm font-medium text-blue-800 mb-3 flex items-center';
+                addressFieldSubtext.textContent = '📍 Please provide your address details below since GPS location is not available.';
+                addressFieldSubtext.className = 'text-xs text-blue-700 mb-3';
+                
+                // Enable the input fields
+                manualCityInput.disabled = false;
+                manualStateInput.disabled = false;
+                manualAddressInput.disabled = false;
+                
+                // Remove disabled styling
+                manualCityInput.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                manualStateInput.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                manualAddressInput.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                
+                // Set required attributes since GPS is not available
+                manualCityInput.required = true;
+                manualStateInput.required = true;
+                manualAddressInput.required = true;
+            }
+            
+            function clearGPSData() {
+                userLatitude = null;
+                userLongitude = null;
+                gpsLocationCaptured = false;
+                coordinatesDisplay.classList.add('hidden');
+                resetLocationBtn.classList.add('hidden');
+                
+                // Reset GPS button
+                getCurrentLocationBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="hidden sm:inline">Get My Location</span>
+                    <span class="sm:hidden">GPS</span>
+                `;
+                getCurrentLocationBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                getCurrentLocationBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                getCurrentLocationBtn.disabled = false;
+                
+                // Enable manual address fields since GPS is cleared
+                enableManualAddressFields();
+            }
+            
+            function clearManualAddressFields() {
+                manualCityInput.value = '';
+                manualStateInput.value = '';
+                manualAddressInput.value = '';
+            }
+            
+            // --- Reset Location Functionality ---
+            resetLocationBtn.addEventListener('click', function() {
+                // Use simple confirm dialog to avoid template literal issues
+                const confirmed = confirm('This will clear GPS data and allow manual address entry. Continue?');
+                if (confirmed) {
+                    resetLocationConfirmed();
+                }
+            });
+            
+            // Function to handle confirmed location reset
+            window.resetLocationConfirmed = function() {
+                    // Reset GPS data - use the existing clearGPSData function which handles everything properly
+                    clearGPSData();
+                    
+                    // Show success notification
+                    notifications.success('GPS location has been reset. You can now enter your address manually or use GPS again.');
+            };
+            
+
+            let currentStep = 0;
+
+            const showSection = (section) => {
+                heroSection.classList.add('hidden');
+                complaintFormSection.classList.add('hidden');
+                trackReportSection.classList.add('hidden');
+                section.classList.remove('hidden');
+            };
+
+            reportIssueBtn.addEventListener('click', () => {
+                // Reset to first step when starting new report
+                currentStep = 0;
+                updateFormSteps();
+                
+                // Ensure form is visible and success message is hidden
+                successMessage.classList.add('hidden');
+                complaintForm.classList.remove('hidden');
+                
+                // Reset form if it has data from a previous submission
+                complaintForm.reset();
+                
+                // Reset submit button state
+                const submitBtn = complaintForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.textContent = '✅ Submit Complaint';
+                    submitBtn.disabled = false;
+                }
+                
+                // Clear media selection and preview
+                clearMediaSelection();
+                
+                // Reset GPS data
+                clearGPSData();
+                
+                // Reset file input
+                fileInput.value = '';
+                
+                // Hide "other category" field if it was visible
+                otherCategoryContainer.classList.add('hidden');
+                otherCategoryInput.required = false;
+                otherCategoryInput.value = '';
+                
+                showSection(complaintFormSection);
+            });
+
+            trackReportBtn.addEventListener('click', () => {
+                showSection(trackReportSection);
+            });
+
+            backToHomeBtn.addEventListener('click', () => {
+                showSection(heroSection);
+            });
+            
+            // Home button functionality
+            const homeBtn = document.getElementById('homeBtn');
+            if (homeBtn) {
+                homeBtn.addEventListener('click', () => {
+                    window.location.href = '/';
+                });
+            }
+
+            trackBtn.addEventListener('click', () => {
+                const trackingId = document.getElementById('trackingId').value.trim();
+                if (!trackingId) {
+                    notifications.validationError('Please enter a report ID to track your complaint.');
+                    return;
+                }
+                window.location.href = `/report.html?id=${trackingId}`;
+            });
+            
+            reportAnotherBtn.addEventListener('click', () => {
+                // Reset form and show it again
+                successMessage.classList.add('hidden');
+                complaintForm.classList.remove('hidden');
+                currentStep = 0;
+                updateFormSteps();
+                
+                // Reset form completely
+                complaintForm.reset();
+                
+                // Reset submit button state
+                const submitBtn = complaintForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.textContent = '✅ Submit Complaint';
+                    submitBtn.disabled = false;
+                }
+                
+                // Clear media selection and preview
+                clearMediaSelection();
+                
+                // Reset GPS data
+                clearGPSData();
+                
+                // Reset file input
+                fileInput.value = '';
+                
+                // Hide "other category" field if it was visible
+                otherCategoryContainer.classList.add('hidden');
+                otherCategoryInput.required = false;
+                otherCategoryInput.value = '';
+                
+                showSection(complaintFormSection);
+            });
+
+            const updateFormSteps = () => {
+                formSteps.forEach((step, index) => {
+                    step.classList.toggle('form-step-active', index === currentStep);
+                });
+
+                // Update progress bar indicators
+                for (let i = 0; i < 3; i++) {
+                    const indicator = document.getElementById(`step-indicator-${i + 1}`);
+                    
+                    // Remove all classes first
+                    indicator.classList.remove('progress-bar-step-active', 'progress-bar-step-complete', 'bg-gray-300');
+                    
+                    if (i < currentStep) {
+                        // Completed steps - green
+                        indicator.classList.add('progress-bar-step-complete');
+                    } else if (i === currentStep) {
+                        // Current active step - orange
+                        indicator.classList.add('progress-bar-step-active');
+                    } else {
+                        // Future steps - gray
+                        indicator.classList.add('bg-gray-300');
+                    }
+                }
+                
+                console.log('Current step updated to:', currentStep + 1); // Debug log
+            };
+            
+            const fillSummary = () => {
+                document.getElementById('summary-name').textContent = document.getElementById('fullName').value;
+                document.getElementById('summary-mobile').textContent = document.getElementById('mobileNumber').value;
+                
+                const issueCategory = document.getElementById('issueCategory').value;
+                const otherCategory = document.getElementById('otherCategory').value;
+                if (issueCategory === 'Other' && otherCategory) {
+                    document.getElementById('summary-category').textContent = `Other: ${otherCategory}`;
+                } else {
+                    document.getElementById('summary-category').textContent = issueCategory;
+                }
+                
+                // Handle location display - GPS coordinates OR manual address
+                const summaryManualAddress = document.getElementById('summary-manual-address');
+                const summaryAddressDetails = document.getElementById('summary-address-details');
+                
+                if (gpsLocationCaptured && userLatitude && userLongitude) {
+                    // Show GPS coordinates
+                    document.getElementById('summary-location').textContent = `GPS Location (${userLatitude.toFixed(4)}, ${userLongitude.toFixed(4)})`;
+                    summaryManualAddress.classList.add('hidden');
+                } else {
+                    // Show manual address details
+                    const manualCity = manualCityInput.value.trim();
+                    const manualState = manualStateInput.value.trim();
+                    const manualAddress = manualAddressInput.value.trim();
+                    
+                    document.getElementById('summary-location').textContent = `${manualCity}, ${manualState}`;
+                    summaryAddressDetails.textContent = manualAddress;
+                    summaryManualAddress.classList.remove('hidden');
+                }
+                
+                document.getElementById('summary-description').textContent = document.getElementById('description').value;
+            };
+
+            const validateCurrentStep = () => {
+                const currentStepElement = document.getElementById(`step-${currentStep + 1}`);
+                const requiredFields = currentStepElement.querySelectorAll('input[required], select[required], textarea[required]');
+                
+                for (let field of requiredFields) {
+                    // Skip file input validation here - it's handled separately
+                    if (field.type === 'file') {
+                        continue;
+                    }
+                    
+                    if (!field.value.trim()) {
+                        field.focus();
+                        field.classList.add('border-red-500');
+                        setTimeout(() => field.classList.remove('border-red-500'), 3000);
+                        
+                        // Show specific error messages
+                        if (field.id === 'mobileNumber' && field.value.length > 0 && field.value.length !== 10) {
+                            notifications.validationError('Please enter a valid 10-digit mobile number.');
+                        } else if (field.id === 'description' && field.value.length > 0 && field.value.length < 10) {
+                            notifications.validationError('Please provide a description of at least 10 characters.');
+                        } else if (field.id === 'otherCategory') {
+                            notifications.validationError('Please specify the other category.');
+                        } else {
+                            notifications.validationError('Please fill in all required fields marked with *');
+                        }
+                        return false;
+                    }
+                    
+                    // Additional validation for mobile number
+                    if (field.id === 'mobileNumber' && field.value.length !== 10) {
+                        field.focus();
+                        field.classList.add('border-red-500');
+                        setTimeout(() => field.classList.remove('border-red-500'), 3000);
+                        notifications.validationError('Please enter a valid 10-digit mobile number.');
+                        return false;
+                    }
+                }
+                
+                // Additional validation for "Other" category
+                const issueCategory = document.getElementById('issueCategory').value;
+                if (issueCategory === 'Other') {
+                    const otherCategory = document.getElementById('otherCategory').value.trim();
+                    if (!otherCategory) {
+                        const otherCategoryField = document.getElementById('otherCategory');
+                        otherCategoryField.focus();
+                        otherCategoryField.classList.add('border-red-500');
+                        setTimeout(() => otherCategoryField.classList.remove('border-red-500'), 3000);
+                        notifications.validationError('Please specify the other category.');
+                        return false;
+                    }
+                }
+                
+                // Validate file upload when on the appropriate step
+                if (currentStep === 1) { // Step 2 (0-indexed) has the file upload
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        notifications.validationError('Please upload a photo or video as evidence of the issue.');
+                        return false;
+                    }
+                }
+                
+                return true;
+            };
+            
+            nextStepBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!validateCurrentStep()) {
+                        return;
+                    }
+                    
+                    if (currentStep < formSteps.length - 1) {
+                        currentStep++;
+                        if (currentStep === 2) { // When moving to the summary step
+                            fillSummary();
+                        }
+                        updateFormSteps();
+                    }
+                });
+            });
+
+            prevStepBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep > 0) {
+                        currentStep--;
+                        updateFormSteps();
+                    }
+                });
+            });
+
+            complaintForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                console.log('📋 Form submission started');
+                
+                // Get the submit button first
+                const submitBtn = complaintForm.querySelector('button[type="submit"]');
+                if (!submitBtn) {
+                    console.error('Submit button not found');
+                    notifications.error('Form submission error. Please refresh the page and try again.');
+                    return;
+                }
+                
+                const originalText = submitBtn.textContent;
+                
+                // Custom validation since HTML5 validation fails with hidden fields
+                const fullName = document.getElementById('fullName').value.trim();
+                const mobileNumber = document.getElementById('mobileNumber').value.trim();
+                const idNumber = document.getElementById('idNumber').value.trim();
+                const issueCategory = document.getElementById('issueCategory').value;
+                const description = document.getElementById('description').value.trim();
+                
+                // Validate required fields
+                if (!fullName) {
+                    notifications.validationError('Please enter your full name.');
+                    return;
+                }
+                if (!mobileNumber || mobileNumber.length !== 10) {
+                    notifications.validationError('Please enter a valid 10-digit mobile number.');
+                    return;
+                }
+                if (!idNumber) {
+                    notifications.validationError('Please enter your Aadhaar or PAN number.');
+                    return;
+                }
+                if (!issueCategory) {
+                    notifications.validationError('Please select an issue category.');
+                    return;
+                }
+                // Validate Other category text box if "Other" is selected
+                if (issueCategory === 'Other') {
+                    const otherCategory = document.getElementById('otherCategory').value.trim();
+                    if (!otherCategory) {
+                        notifications.validationError('Please specify the other category.');
+                        return;
+                    }
+                }
+                // Validate location - either GPS coordinates OR manual address fields
+                if (!gpsLocationCaptured || !userLatitude || !userLongitude) {
+                    // No GPS, must validate manual address fields
+                    const manualCity = manualCityInput.value.trim();
+                    const manualState = manualStateInput.value.trim();
+                    const manualAddress = manualAddressInput.value.trim();
+                    
+                    if (!manualCity) {
+                        notifications.validationError('Please enter your city in the address section.');
+                        return;
+                    }
+                    if (!manualState) {
+                        notifications.validationError('Please enter your state in the address section.');
+                        return;
+                    }
+                    if (!manualAddress) {
+                        notifications.validationError('Please enter your detailed address.');
+                        return;
+                    }
+                }
+                // If GPS is captured, no additional validation needed for location
+                if (!description || description.length < 10) {
+                    notifications.validationError('Please provide a detailed description of at least 10 characters.');
+                    return;
+                }
+                
+                // Validate required file upload
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    notifications.validationError('Please upload a photo or video as evidence of the issue.');
+                    return;
+                }
+                
+                // Create FormData object to handle file upload
+                const formData = new FormData();
+                formData.append('name', document.getElementById('fullName').value);
+                formData.append('description', document.getElementById('description').value);
+                
+                // Handle category - if Other is selected, use the specified other category
+                const selectedCategory = document.getElementById('issueCategory').value;
+                if (selectedCategory === 'Other') {
+                    const otherCategory = document.getElementById('otherCategory').value;
+                    formData.append('category', `Other: ${otherCategory}`);
+                } else {
+                    formData.append('category', selectedCategory);
+                }
+                
+                // Handle location data based on GPS or manual address
+                if (gpsLocationCaptured && userLatitude && userLongitude) {
+                    // GPS mode - use coordinates
+                    formData.append('location', 'GPS Location');
+                    formData.append('address_type', 'gps');
+                } else {
+                    // Manual address mode
+                    const manualCity = manualCityInput.value.trim();
+                    const manualState = manualStateInput.value.trim();
+                    const manualAddress = manualAddressInput.value.trim();
+                    
+                    formData.append('location', `${manualCity}, ${manualState}`);
+                    formData.append('manualCity', manualCity);
+                    formData.append('manualState', manualState);
+                    formData.append('manualAddress', manualAddress);
+                    formData.append('address_type', 'manual');
+                }
+                
+                // Add coordinates if available (GPS mode)
+                if (userLatitude && userLongitude) {
+                    formData.append('latitude', userLatitude);
+                    formData.append('longitude', userLongitude);
+                    formData.append('has_gps', 'true');
+                } else {
+                    formData.append('has_gps', 'false');
+                }
+                
+                // Add file if uploaded
+                if (fileInput.files.length > 0) {
+                    formData.append('media', fileInput.files[0]);
+                }
+                
+                try {
+                    console.log('🚀 Starting form submission...');
+                    
+                    // Show loading state
+                    submitBtn.textContent = 'Submitting...';
+                    submitBtn.disabled = true;
+                    
+                    console.log('📎 FormData contents:', Array.from(formData.entries()));
+                    
+                    const response = await fetch('https://nagar-samadhaan.onrender.com/api/reports', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    console.log('🔄 Server response status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                        console.error('❌ Server error:', errorData);
+                        throw new Error(errorData.error || `Server error: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('✅ Success:', result);
+                    
+                    // Show success message
+                    complaintForm.classList.add('hidden');
+                    successMessage.classList.remove('hidden');
+                    document.getElementById('complaintId').textContent = result.public_id;
+                    
+                    notifications.success('Complaint submitted successfully!');
+                    
+                    // Reset form for future use
+                    clearMediaSelection();
+                    currentStep = 0;
+                    updateFormSteps();
+                    
+                } catch (error) {
+                    console.error('Error submitting complaint:', error);
+                    
+                    // Check if it's a network error or server error
+                    if (error.message.includes('fetch')) {
+                        notifications.error('Network error. Please check your internet connection and try again.');
+                    } else {
+                        notifications.error('Failed to submit complaint. Please try again or contact support if the issue persists.');
+                    }
+                    
+                    // Reset button
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+
+            updateFormSteps();
+            
+            // Initialize manual address fields as enabled (default state)
+            enableManualAddressFields();
+            
+            // Mobile-specific enhancements
+            initializeMobileFeatures();
+        });
+        
+        // Mobile-specific features initialization
+        function initializeMobileFeatures() {
+            // Prevent zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+            
+            // Add haptic feedback for buttons on supported devices
+            document.querySelectorAll('button, .touch-button').forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    if (navigator.vibrate) {
+                        navigator.vibrate(10); // Short vibration
+                    }
+                }, { passive: true });
+            });
+            
+            // Auto-hide address bar on mobile
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                }, 100);
+            }
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', function() {
+                setTimeout(() => {
+                    window.scrollTo(0, 1);
+                }, 500);
+            });
+            
+            // Track if form is partially filled and warn on navigation
+            let formHasData = false;
+            const formInputs = document.querySelectorAll('input, textarea, select');
+            
+            formInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    formHasData = true;
+                });
+            });
+            
+            window.addEventListener('beforeunload', (e) => {
+                if (formHasData && !document.getElementById('successMessage').classList.contains('hidden')) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+        }
+    </script>
+
+    
+    <div id="camera-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+        <div class="relative top-4 sm:top-20 mx-auto p-3 sm:p-5 border w-11/12 max-w-lg shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="camera-modal-title" class="text-lg font-medium text-gray-900">Take Photo</h3>
+                    <button id="close-camera-modal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                
+                <div id="camera-container" class="text-center mb-4">
+                    <video id="camera-stream" class="w-full max-h-64 rounded-lg bg-black" autoplay muted playsinline></video>
+                    <canvas id="camera-canvas" class="hidden"></canvas>
+                </div>
+                
+                
+                <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <button id="capture-btn" class="touch-button bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors active:scale-95">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        </svg>
+                        <span id="capture-btn-text">Capture</span>
+                    </button>
+                    <button id="stop-recording-btn" class="touch-button bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors active:scale-95 hidden">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10l6 6m0-6l-6 6"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Stop Recording</span>
+                        <span class="sm:hidden">Stop</span>
+                    </button>
+                    <button id="cancel-camera" class="touch-button bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors active:scale-95">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

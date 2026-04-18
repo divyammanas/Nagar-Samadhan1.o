@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Report Details - Nagar Samadhan</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#F97316">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nagar Samadhan">
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/notifications-simple.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F1F5F9;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        #map {
+            height: 300px;
+            border-radius: 0.5rem;
+        }
+        
+        /* Touch-friendly buttons */
+        .touch-button {
+            min-height: 48px;
+            min-width: 48px;
+            touch-action: manipulation;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            #map {
+                height: 250px;
+            }
+            
+            .grid-cols-1.md\:grid-cols-2 {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                line-height: 2rem;
+            }
+            
+            .flex.items-center.justify-between {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            /* Better spacing for mobile */
+            .p-8 {
+                padding: 1rem;
+            }
+            
+            .px-6 {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold text-gray-800">
+                    <span class="text-orange-500">Nagar</span><span class="text-green-600"> Samadhan</span>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="history.back()" class="touch-button bg-gray-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-300 active:scale-95 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Back</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    
+    <main class="container mx-auto px-6 py-8">
+        <div id="loading" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading report details...</p>
+        </div>
+
+        <div id="error" class="hidden text-center py-12">
+            <svg class="mx-auto h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <h2 class="mt-4 text-2xl font-bold text-gray-800">Report Not Found</h2>
+            <p class="mt-2 text-gray-600">The report you're looking for doesn't exist or has been removed.</p>
+        </div>
+
+        <div id="content" class="hidden max-w-4xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h1 id="report-title" class="text-3xl font-bold text-gray-800"></h1>
+                        <div class="flex items-center gap-4">
+                            
+                            <div id="upvote-section" class="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2 rounded-lg border border-blue-200">
+                                <div class="text-center">
+                                    <button id="upvote-btn" class="touch-button flex flex-col items-center justify-center w-12 h-12 rounded-full border-2 border-blue-400 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                        </svg>
+                                    </button>
+                                    <span id="upvote-count" class="text-sm font-bold text-blue-700 mt-1">0</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-blue-800">Community Support</p>
+                                    <p id="upvote-status" class="text-xs text-blue-600">Click to upvote this report</p>
+                                </div>
+                            </div>
+                            <span id="status-badge" class="px-4 py-2 rounded-full text-sm font-medium"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Report Details</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">Category:</span>
+                                    <p id="category" class="text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">Submitted by:</span>
+                                    <p id="submitted-by" class="text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">Date Submitted:</span>
+                                    <p id="date-submitted" class="text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">Assigned Department:</span>
+                                    <p id="department" class="text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">Priority:</span>
+                                    <p id="priority" class="text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">Report Location:</span>
+                                    <p id="report-location" class="text-gray-800 flex items-center">
+                                        <svg class="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        <span id="location-text">Loading...</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="media-container" class="hidden">
+                            <h3 id="media-title" class="text-lg font-semibold text-gray-800 mb-4">Evidence</h3>
+                            <div id="media-content" class="w-full">
+                                <img id="report-image" src="" alt="Report Image" class="w-full rounded-lg shadow-md hidden">
+                                <video id="report-video" controls class="w-full rounded-lg shadow-md hidden">
+                                    <source id="video-source" src="" type="">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div id="location-info-section" class="mt-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Location Details
+                        </h3>
+                        
+                        
+                        <div class="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Reported from:</p>
+                                    <p id="full-location-text" class="text-lg font-semibold text-gray-800">Loading location...</p>
+                                </div>
+                                <div id="gps-status" class="text-right">
+                                    <span id="gps-badge" class="px-3 py-1 rounded-full text-xs font-medium">Checking GPS...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        <div id="map-container" class="hidden">
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <h4 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"></path>
+                                    </svg>
+                                    Exact Location on Map
+                                </h4>
+                                <div id="map" class="w-full shadow-md"></div>
+                                <p id="coordinates-text" class="text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded"></p>
+                            </div>
+                        </div>
+                        
+                        
+                        <div id="no-gps-info" class="hidden">
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <svg class="w-5 h-5 text-yellow-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-medium text-yellow-800">No GPS coordinates available</p>
+                                        <p class="text-xs text-yellow-700 mt-1">This report was submitted without precise location tracking. The location shown is based on the city/area selected by the citizen.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div id="admin-address-section" class="mt-8 hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Complete Address Details
+                        </h3>
+                        <div id="admin-address-content" class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Description</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p id="description" class="text-gray-700 leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <div id="tasks-section" class="mt-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Progress Updates</h3>
+                        <div id="tasks-container" class="space-y-3">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const isAdmin = params.get('admin') === 'true'; // Check if this is an admin viewing the report
+        
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const contentEl = document.getElementById('content');
+        
+        // Hide upvote section for admin users
+        if (isAdmin) {
+            const upvoteSection = document.getElementById('upvote-section');
+            if (upvoteSection) {
+                upvoteSection.style.display = 'none';
+            }
+        }
+        
+        if (!id) {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`https://nagar-samadhaan.onrender.com/api/reports/${id}`);
+            
+            if (!response.ok) {
+                throw new Error('Report not found');
+            }
+            
+            const report = await response.json();
+            
+            // Hide loading, show content
+            loadingEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+            
+            // Populate report details
+            document.getElementById('report-title').textContent = `Report ${report.public_id}`;
+            document.getElementById('category').textContent = report.category || 'N/A';
+            document.getElementById('submitted-by').textContent = report.name || 'Anonymous';
+            document.getElementById('date-submitted').textContent = new Date(report.created_at).toLocaleDateString();
+            document.getElementById('department').textContent = report.assigned_department || 'Not assigned';
+            document.getElementById('description').textContent = report.description || 'No description provided';
+            
+            // Set priority display with special handling for resolved reports
+            const priorityEl = document.getElementById('priority');
+            if (report.status === 'resolved') {
+                priorityEl.innerHTML = `<span class="text-gray-500 italic">N/A</span>`;
+            } else {
+                const priority = report.priority || 'low';
+                const priorityFormatted = capitalizeFirst(priority);
+                priorityEl.innerHTML = `<span class="px-2 py-1 rounded-full text-xs font-medium ${getPriorityClass(priority)}">${priorityFormatted}</span>`;
+            }
+            
+            // Set status badge
+            const statusBadge = document.getElementById('status-badge');
+            statusBadge.textContent = capitalizeFirst(report.status);
+            statusBadge.className = `px-4 py-2 rounded-full text-sm font-medium ${getStatusClass(report.status)}`;
+            
+            // Populate location information with enhanced manual address support
+            let locationText = report.location || 'Location not specified';
+            let fullLocationText = locationText;
+            
+            // Check for manual address and enhance display
+            if (report.location_data && report.location_data.manual_address && report.location_data.address_type === 'manual') {
+                const manualAddress = report.location_data.manual_address;
+                locationText = `${manualAddress.city}, ${manualAddress.state}`;
+                fullLocationText = `${manualAddress.city}, ${manualAddress.state} - ${manualAddress.detailed_address}`;
+            }
+            
+            document.getElementById('location-text').textContent = locationText;
+            document.getElementById('full-location-text').textContent = fullLocationText;
+            
+            // Show media if exists (image or video)
+            if (report.media_path) {
+                const mediaContainer = document.getElementById('media-container');
+                const mediaTitle = document.getElementById('media-title');
+                const reportImage = document.getElementById('report-image');
+                const reportVideo = document.getElementById('report-video');
+                const videoSource = document.getElementById('video-source');
+                
+                // Determine if it's an image or video based on file extension
+                const mediaPath = report.media_path;
+                const isVideo = /\.(mp4|webm|mov|avi|mkv)$/i.test(mediaPath);
+                
+                if (isVideo) {
+                    // Show video
+                    mediaTitle.textContent = '🎥 Video Evidence';
+                    videoSource.src = mediaPath;
+                    
+                    // Try to determine video type
+                    if (mediaPath.includes('.mp4')) {
+                        videoSource.type = 'video/mp4';
+                    } else if (mediaPath.includes('.webm')) {
+                        videoSource.type = 'video/webm';
+                    } else if (mediaPath.includes('.mov')) {
+                        videoSource.type = 'video/quicktime';
+                    }
+                    
+                    reportVideo.load(); // Reload video with new source
+                    reportVideo.classList.remove('hidden');
+                    reportImage.classList.add('hidden');
+                } else {
+                    // Show image
+                    mediaTitle.textContent = '📷 Photo Evidence';
+                    reportImage.src = mediaPath;
+                    reportImage.classList.remove('hidden');
+                    reportVideo.classList.add('hidden');
+                    
+                    // Add error handling for images
+                    reportImage.onerror = function() {
+                        console.error('Failed to load image:', mediaPath);
+                        mediaTitle.innerHTML = '❌ Evidence (Failed to Load)';
+                        
+                        // Create a user-friendly error message
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'border-2 border-dashed border-red-400 bg-red-50 p-8 rounded-lg text-center';
+                        errorDiv.innerHTML = `
+                            <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <p class="text-red-700 font-medium">Image failed to load. Please check the file path.</p>
+                            <p class="text-red-600 text-sm mt-2">Path: <code class="bg-red-100 px-2 py-1 rounded">${mediaPath}</code></p>
+                            <p class="text-red-600 text-xs mt-1">Make sure the server is running and the file exists.</p>
+                        `;
+                        
+                        // Replace the broken image with the error message
+                        reportImage.style.display = 'none';
+                        document.getElementById('media-content').appendChild(errorDiv);
+                    };
+                    
+                    // Add load success handler
+                    reportImage.onload = function() {
+                        console.log('✅ Image loaded successfully:', mediaPath);
+                    };
+                }
+                
+                mediaContainer.classList.remove('hidden');
+                
+                console.log('📎 Media loaded:', {
+                    path: mediaPath,
+                    isVideo: isVideo,
+                    type: isVideo ? videoSource.type : 'image'
+                });
+            } else {
+                console.log('📎 No media found for this report');
+            }
+            
+            // Handle GPS coordinates and map display
+            if (report.latitude && report.longitude) {
+                // Show GPS available badge
+                const gpsBadge = document.getElementById('gps-badge');
+                gpsBadge.textContent = 'GPS Location Available';
+                gpsBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                
+                // Show map container
+                document.getElementById('map-container').classList.remove('hidden');
+                
+                // Initialize the map with better citizen-friendly settings
+                const map = L.map('map').setView([report.latitude, report.longitude], 17);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                // Add a custom marker with better popup
+                const marker = L.marker([report.latitude, report.longitude]).addTo(map);
+                const popupContent = `
+                    <div class="text-center">
+                        <h4 class="font-bold text-gray-800">${report.category}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${report.description}</p>
+                        <p class="text-xs text-gray-500 mt-2">📍 ${locationText}</p>
+                    </div>
+                `;
+                marker.bindPopup(popupContent).openPopup();
+                
+                // Display coordinates text with better formatting
+                document.getElementById('coordinates-text').innerHTML = 
+                    `<strong>Precise Coordinates:</strong> ${report.latitude.toFixed(6)}, ${report.longitude.toFixed(6)}<br>
+                     <strong>Address:</strong> ${locationText}`;
+            } else {
+                // Check if manual address is available
+                const hasManualAddress = report.location_data && 
+                                        report.location_data.manual_address && 
+                                        report.location_data.address_type === 'manual';
+                
+                if (hasManualAddress) {
+                    // Show manual address badge
+                    const gpsBadge = document.getElementById('gps-badge');
+                    gpsBadge.textContent = 'Manual Address Entry';
+                    gpsBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800';
+                    
+                    // Update location display to include manual address details
+                    const manualAddress = report.location_data.manual_address;
+                    const fullAddressText = `${manualAddress.city}, ${manualAddress.state}`;
+                    const detailedAddress = manualAddress.detailed_address;
+                    
+                    document.getElementById('full-location-text').textContent = fullAddressText;
+                    
+                    // Show manual address info section instead of no GPS info
+                    const noGpsInfo = document.getElementById('no-gps-info');
+                    noGpsInfo.innerHTML = `
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-orange-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-orange-800">📍 Manual Address Entry</p>
+                                    <p class="text-xs text-orange-700 mt-1">This report was submitted using manual address entry instead of GPS location.</p>
+                                    <div class="mt-3 bg-white border border-orange-200 rounded p-3">
+                                        <div class="space-y-1 text-sm">
+                                            <p class="text-gray-700"><span class="font-medium">City:</span> ${manualAddress.city}</p>
+                                            <p class="text-gray-700"><span class="font-medium">State:</span> ${manualAddress.state}</p>
+                                            <p class="text-gray-700"><span class="font-medium">Address:</span> ${detailedAddress}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    noGpsInfo.classList.remove('hidden');
+                } else {
+                    // Show standard no GPS badge
+                    const gpsBadge = document.getElementById('gps-badge');
+                    gpsBadge.textContent = 'No GPS Data';
+                    gpsBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800';
+                    
+                    // Show no GPS info section
+                    document.getElementById('no-gps-info').classList.remove('hidden');
+                }
+            }
+            
+            // Show tasks if they exist
+            if (report.tasks && report.tasks.length > 0) {
+                const tasksContainer = document.getElementById('tasks-container');
+                report.tasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'bg-gray-50 p-4 rounded-lg';
+                    taskEl.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-gray-800">${task.department}</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(task.status)}">
+                                ${capitalizeFirst(task.status)}
+                            </span>
+                        </div>
+                        ${task.assigned_to ? `<p class="text-sm text-gray-600 mt-1">Assigned to: ${task.assigned_to}</p>` : ''}
+                        ${task.notes ? `<p class="text-sm text-gray-700 mt-2">${task.notes}</p>` : ''}
+                    `;
+                    tasksContainer.appendChild(taskEl);
+                });
+            } else {
+                document.getElementById('tasks-container').innerHTML = 
+                    '<p class="text-gray-500 italic">No progress updates yet.</p>';
+            }
+            
+            // Show admin-specific detailed address section if admin user
+            if (isAdmin) {
+                const adminAddressSection = document.getElementById('admin-address-section');
+                const adminAddressContent = document.getElementById('admin-address-content');
+                
+                // Build comprehensive address information for admin
+                let addressHTML = '';
+                
+                if (report.latitude && report.longitude) {
+                    // GPS location available
+                    addressHTML = `
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-green-100 p-2 rounded-full">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-green-800">📍 GPS Location Available</h4>
+                                    <div class="mt-2 space-y-2 text-sm text-gray-700">
+                                        <div><span class="font-medium">Coordinates:</span> ${report.latitude.toFixed(6)}, ${report.longitude.toFixed(6)}</div>
+                                        <div><span class="font-medium">Location:</span> ${locationText}</div>
+                                        <div class="text-xs text-green-600">✓ Precise location tracking enabled</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (report.location_data && report.location_data.manual_address && report.location_data.address_type === 'manual') {
+                    // Manual address entry
+                    const addr = report.location_data.manual_address;
+                    addressHTML = `
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-orange-100 p-2 rounded-full">
+                                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-orange-800">📝 Manual Address Entry</h4>
+                                    <div class="mt-3 bg-white border border-orange-200 rounded-lg p-4">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <span class="font-medium text-gray-600">City:</span>
+                                                <div class="text-gray-800 font-medium">${addr.city}</div>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium text-gray-600">State:</span>
+                                                <div class="text-gray-800 font-medium">${addr.state}</div>
+                                            </div>
+                                            <div class="sm:col-span-2">
+                                                <span class="font-medium text-gray-600">Detailed Address:</span>
+                                                <div class="text-gray-800 mt-1 p-3 bg-gray-50 rounded border">${addr.detailed_address}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-orange-600 mt-2">⚠️ No GPS coordinates - location based on citizen input</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Dropdown location only
+                    addressHTML = `
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-yellow-100 p-2 rounded-full">
+                                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-yellow-800">📍 Basic Location Info</h4>
+                                    <div class="mt-2 text-sm text-gray-700">
+                                        <div><span class="font-medium">Location:</span> ${locationText}</div>
+                                        <div class="text-xs text-yellow-600 mt-2">ℹ️ Limited location data - citizen selected from dropdown menu</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                adminAddressContent.innerHTML = addressHTML;
+                adminAddressSection.classList.remove('hidden');
+            } else {
+                // Initialize upvote functionality for non-admin users
+                await initializeUpvotes(id, report);
+            }
+            
+        } catch (error) {
+            console.error('Error loading report:', error);
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+        }
+    });
+    
+    // Upvote functionality
+    let currentReportId = null;
+    let hasVoted = false;
+    
+    async function initializeUpvotes(reportId, reportData) {
+        currentReportId = reportId;
+        
+        try {
+            // Check initial vote status
+            const voteResponse = await fetch(`https://nagar-samadhaan.onrender.com/api/reports/${reportId}/vote-status`);
+            const voteData = await voteResponse.json();
+            
+            // Update UI with initial state
+            updateUpvoteUI(voteData.upvotes, voteData.has_voted);
+            
+            // Add click handler for upvote button
+            const upvoteBtn = document.getElementById('upvote-btn');
+            upvoteBtn.addEventListener('click', handleUpvote);
+            
+        } catch (error) {
+            console.error('Error initializing upvotes:', error);
+            // Hide upvote section if there's an error
+            document.getElementById('upvote-section').style.display = 'none';
+        }
+    }
+    
+    async function handleUpvote() {
+        if (hasVoted) {
+            notifications.info('You have already upvoted this report', { title: 'Already Voted' });
+            return;
+        }
+        
+        const upvoteBtn = document.getElementById('upvote-btn');
+        const originalHTML = upvoteBtn.innerHTML;
+        
+        try {
+            // Show loading state
+            upvoteBtn.disabled = true;
+            upvoteBtn.innerHTML = `
+                <svg class="w-5 h-5 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            `;
+            
+            const response = await fetch(`https://nagar-samadhaan.onrender.com/api/reports/${currentReportId}/upvote`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                // Success - update UI
+                updateUpvoteUI(result.upvotes, true);
+                
+                let message = `✅ Thank you for your support! This report now has ${result.upvotes} upvote${result.upvotes !== 1 ? 's' : ''}.`;
+                if (result.priority_boosted) {
+                    message += ` ⬆️ Priority upgraded to ${result.priority.toUpperCase()} due to community support!`;
+                    // Update priority display
+                    const priorityEl = document.getElementById('priority');
+                    priorityEl.innerHTML = `<span class="px-2 py-1 rounded-full text-xs font-medium ${getPriorityClass(result.priority)}">${capitalizeFirst(result.priority)}</span>`;
+                }
+                
+                notifications.success(message, { title: 'Upvote Successful' });
+                
+            } else if (response.status === 409) {
+                // Already voted
+                updateUpvoteUI(result.upvotes || 0, true);
+                notifications.info(result.message, { title: 'Already Voted' });
+            } else {
+                throw new Error(result.error || 'Failed to upvote');
+            }
+            
+        } catch (error) {
+            console.error('Error upvoting:', error);
+            notifications.error('Failed to record your upvote. Please check your connection and try again.', { title: 'Upvote Failed' });
+            
+            // Reset button
+            upvoteBtn.innerHTML = originalHTML;
+            upvoteBtn.disabled = false;
+        }
+    }
+    
+    function updateUpvoteUI(upvoteCount, voted) {
+        hasVoted = voted;
+        
+        const upvoteBtn = document.getElementById('upvote-btn');
+        const upvoteCountEl = document.getElementById('upvote-count');
+        const upvoteStatus = document.getElementById('upvote-status');
+        
+        // Update count
+        upvoteCountEl.textContent = upvoteCount || 0;
+        
+        if (voted) {
+            // User has voted - show voted state
+            upvoteBtn.className = 'flex flex-col items-center justify-center w-12 h-12 rounded-full border-2 border-green-400 bg-green-50 cursor-not-allowed';
+            upvoteBtn.innerHTML = `
+                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M5 15l7-7 7 7"></path>
+                </svg>
+            `;
+            upvoteStatus.textContent = 'You upvoted this report';
+            upvoteStatus.className = 'text-xs text-green-600';
+            upvoteBtn.disabled = true;
+        } else {
+            // User can vote - show active state
+            upvoteBtn.className = 'flex flex-col items-center justify-center w-12 h-12 rounded-full border-2 border-blue-400 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer';
+            upvoteBtn.innerHTML = `
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                </svg>
+            `;
+            upvoteStatus.textContent = 'Click to upvote this report';
+            upvoteStatus.className = 'text-xs text-blue-600';
+            upvoteBtn.disabled = false;
+        }
+    }
+    
+    // Old showUpvoteMessage function removed - now using unified notification system
+    
+    function getStatusClass(status) {
+        switch(status) {
+            case 'submitted': return 'bg-red-100 text-red-800';
+            case 'pending': return 'bg-red-100 text-red-800';
+            case 'open': return 'bg-red-100 text-red-800';
+            case 'acknowledged': return 'bg-blue-100 text-blue-800';
+            case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+            case 'resolved': return 'bg-green-100 text-green-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
+    
+    function capitalizeFirst(str) {
+        if (str === 'submitted' || str === 'open' || str === 'pending') return 'Pending';
+        return str.charAt(0).toUpperCase() + str.slice(1).replace('_', ' ');
+    }
+    
+    function getPriorityClass(priority) {
+        switch(priority) {
+            case 'urgent': return 'bg-red-100 text-red-800';
+            case 'high': return 'bg-orange-100 text-orange-800';
+            case 'medium': return 'bg-yellow-100 text-yellow-800';
+            case 'low': return 'bg-green-100 text-green-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
+    </script>
+</body>
+</html>
