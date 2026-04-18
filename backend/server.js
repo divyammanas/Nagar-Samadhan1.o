@@ -570,19 +570,15 @@ app.post('/api/reports/:public_id/upvote', async (req, res) => {
         
         await report.save();
         
-        // Check if upvotes should trigger priority recalculation
+        // Recalculate full priority using PriorityService (includes clustering + upvotes)
         const oldPriority = report.priority;
-        let newPriority = oldPriority;
-        
-        // Priority boost based on upvotes
-        if (report.upvotes.count >= 25) {
-            newPriority = 'high';
-        } else if (report.upvotes.count >= 10) {
-            // Boost priority by one level if not already high/urgent
-            if (oldPriority === 'low') newPriority = 'medium';
-            else if (oldPriority === 'medium') newPriority = 'high';
-        }
-        
+        const { priority: newPriority } = await PriorityService.calculateSmartPriority({
+            _id: report._id,
+            category: report.category,
+            location: report.location,
+            upvotes: report.upvotes
+        });
+
         // Update priority if changed
         if (newPriority !== oldPriority) {
             report.priority = newPriority;
