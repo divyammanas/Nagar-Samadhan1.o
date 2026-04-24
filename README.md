@@ -1,6 +1,5 @@
 # 🏙️ Nagar Samadhan
-Smart civic issue reporting platform — Smart India Hackathon 2025
-
+Smart civic issue reporting platform 
 ## Project Structure
 ```
 nagar-samadhan/
@@ -50,6 +49,9 @@ cp .env.example .env
 npm start
 # Visit http://localhost:3000
 ```
+4. **OR**
+  Go to ariachat.in 
+ it is deployed as a proper website
 
 ## Deployment
 - **Backend** → Render (start command: `node backend/server.js`)
