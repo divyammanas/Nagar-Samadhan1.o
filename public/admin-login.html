@@ -85,23 +85,45 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : 'https://nagar-samadhan1-o.onrender.com';
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            if (username === 'nagaradmin' && password === 'secure@2024') {
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                sessionStorage.setItem('adminLoginTime', Date.now().toString());
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Invalid username or password');
+                }
+
+                sessionStorage.setItem('adminToken', result.token);
+                sessionStorage.setItem('adminTokenExpiresAt', String(result.expiresAt));
                 window.location.href = '/admin.html';
-            } else {
-                notifications.error('Invalid username or password. Please check your credentials and try again.', {
+            } catch (error) {
+                notifications.error(error.message || 'Unable to login. Please try again.', {
                     title: 'Login Failed'
                 });
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
                 document.getElementById('username').focus();
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Login to Admin Portal';
             }
         });
     </script>

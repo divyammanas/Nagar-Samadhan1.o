@@ -41,8 +41,14 @@ npm install --legacy-peer-deps
 2. **Configure environment**
 ```bash
 cp .env.example .env
-# Edit .env with your MongoDB URI and credentials
+# Edit .env with your MongoDB URI, admin login, and JWT secret
 ```
+
+Required server environment variables:
+- `MONGO_URI` or `MONGODB_URI`: MongoDB connection string
+- `ADMIN_USERNAME`: admin login username
+- `ADMIN_PASSWORD`: admin login password
+- `JWT_SECRET`: long random secret used to sign admin sessions
 
 3. **Run locally**
 ```bash

@@ -5,6 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 const os = require('os');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const GridFSBucket = require('mongodb').GridFSBucket;
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
@@ -101,6 +102,117 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
+const ADMIN_TOKEN_SECRET = process.env.JWT_SECRET || process.env.ADMIN_TOKEN_SECRET || ADMIN_PASSWORD;
+
+function timingSafeEqualText(a, b) {
+  const left = Buffer.from(String(a || ''));
+  const right = Buffer.from(String(b || ''));
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function base64UrlEncode(value) {
+  return Buffer.from(value).toString('base64url');
+}
+
+function base64UrlDecode(value) {
+  return Buffer.from(value, 'base64url').toString('utf8');
+}
+
+function signAdminPayload(payload) {
+  const body = base64UrlEncode(JSON.stringify(payload));
+  const signature = crypto
+    .createHmac('sha256', ADMIN_TOKEN_SECRET)
+    .update(body)
+    .digest('base64url');
+
+  return `${body}.${signature}`;
+}
+
+function verifyAdminToken(token) {
+  if (!ADMIN_TOKEN_SECRET || !token || !token.includes('.')) {
+    return null;
+  }
+
+  const [body, signature] = token.split('.');
+  const expectedSignature = crypto
+    .createHmac('sha256', ADMIN_TOKEN_SECRET)
+    .update(body)
+    .digest('base64url');
+
+  if (!timingSafeEqualText(signature, expectedSignature)) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(base64UrlDecode(body));
+    if (payload.sub !== 'admin' || !payload.exp || payload.exp < Date.now()) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+async function isValidAdminPassword(password) {
+  if (ADMIN_PASSWORD_HASH) {
+    return bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+  }
+
+  if (ADMIN_PASSWORD) {
+    return timingSafeEqualText(password, ADMIN_PASSWORD);
+  }
+
+  return false;
+}
+
+function requireAdminAuth(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  const payload = verifyAdminToken(token);
+
+  if (!payload) {
+    return res.status(401).json({ error: 'Admin authentication required' });
+  }
+
+  req.admin = payload;
+  next();
+}
+
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    if (!ADMIN_TOKEN_SECRET || (!ADMIN_PASSWORD && !ADMIN_PASSWORD_HASH)) {
+      return res.status(503).json({
+        error: 'Admin login is not configured. Set ADMIN_PASSWORD or ADMIN_PASSWORD_HASH and JWT_SECRET on the server.'
+      });
+    }
+
+    const { username, password } = req.body || {};
+    const isUsernameValid = timingSafeEqualText(username, ADMIN_USERNAME);
+    const isPasswordValid = await isValidAdminPassword(password);
+
+    if (!isUsernameValid || !isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    const expiresAt = Date.now() + ADMIN_SESSION_MS;
+    const token = signAdminPayload({
+      sub: 'admin',
+      username: ADMIN_USERNAME,
+      exp: expiresAt
+    });
+
+    res.json({ token, expiresAt });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ error: 'Unable to login' });
+  }
+});
 
 // Use memory storage for temporary file handling
 const storage = multer.memoryStorage();
@@ -382,7 +494,7 @@ app.post('/api/reports', (req, res, next) => {
 });
 
 // List reports (admin)
-app.get('/api/reports', async (req, res) => {
+app.get('/api/reports', requireAdminAuth, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
@@ -628,7 +740,7 @@ app.get('/api/reports/:public_id/vote-status', async (req, res) => {
 });
 
 // Admin: update task status / assign
-app.post('/api/tasks/:id/update', async (req, res) => {
+app.post('/api/tasks/:id/update', requireAdminAuth, async (req, res) => {
     try {
         const taskId = req.params.id;
         const status = req.body.status || 'in_progress';
@@ -667,7 +779,7 @@ app.post('/api/tasks/:id/update', async (req, res) => {
 });
 
 // Recalculate priorities for all reports
-app.post('/api/recalculate-priorities', async (req, res) => {
+app.post('/api/recalculate-priorities', requireAdminAuth, async (req, res) => {
     try {
         const results = await PriorityService.recalculateAllPriorities();
         res.json({
@@ -686,7 +798,7 @@ app.post('/api/recalculate-priorities', async (req, res) => {
 });
 
 // Priority and analytics endpoints
-app.get('/api/priority/stats', async (req, res) => {
+app.get('/api/priority/stats', requireAdminAuth, async (req, res) => {
     try {
         const stats = await PriorityService.getPriorityStats();
         res.json(stats);
@@ -696,7 +808,7 @@ app.get('/api/priority/stats', async (req, res) => {
     }
 });
 
-app.post('/api/priority/recalculate', async (req, res) => {
+app.post('/api/priority/recalculate', requireAdminAuth, async (req, res) => {
     try {
         const results = await PriorityService.recalculateAllPriorities();
         res.json({
@@ -710,7 +822,7 @@ app.post('/api/priority/recalculate', async (req, res) => {
     }
 });
 
-app.get('/api/priority/urgent', async (req, res) => {
+app.get('/api/priority/urgent', requireAdminAuth, async (req, res) => {
     try {
         const urgentReports = await PriorityService.getUrgentReports();
         res.json(urgentReports);
@@ -720,7 +832,7 @@ app.get('/api/priority/urgent', async (req, res) => {
     }
 });
 
-app.get('/api/analytics/clusters', async (req, res) => {
+app.get('/api/analytics/clusters', requireAdminAuth, async (req, res) => {
     try {
         const radius = parseInt(req.query.radius) || 1000;
         const clusters = await PriorityService.getLocationClusters(radius);
@@ -731,7 +843,7 @@ app.get('/api/analytics/clusters', async (req, res) => {
     }
 });
 
-app.get('/api/analytics/trends', async (req, res) => {
+app.get('/api/analytics/trends', requireAdminAuth, async (req, res) => {
     try {
         const days = parseInt(req.query.days) || 30;
         const trends = await PriorityService.getPriorityTrends(days);
@@ -743,7 +855,7 @@ app.get('/api/analytics/trends', async (req, res) => {
 });
 
 // Dashboard statistics
-app.get('/api/dashboard/stats', async (req, res) => {
+app.get('/api/dashboard/stats', requireAdminAuth, async (req, res) => {
     try {
         const totalReports = await Report.countDocuments();
         const pendingReports = await Report.countDocuments({ status: 'pending' });
