@@ -1,4 +1,5 @@
 const CACHE_NAME = 'nagar-samadhan-v1.0';
+const API_BASE_URL = 'https://nagar-samadhan1-o.onrender.com';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -8,6 +9,7 @@ const STATIC_CACHE_URLS = [
   '/report.html',
   '/manifest.json',
   '/notifications-simple.js',
+  '/config.js',
   'https://cdn.tailwindcss.com/3.3.0.css',
   'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
@@ -193,7 +195,6 @@ self.addEventListener('sync', event => {
   }
 });
 
-// Sync pending reports when back online
 async function syncReports() {
   try {
     const cache = await caches.open(CACHE_NAME);
@@ -204,7 +205,7 @@ async function syncReports() {
       
       for (const report of reports) {
         try {
-          const response = await fetch('https://nagar-samadhan1-o.onrender.com/api/reports', {
+          const response = await fetch(`${API_BASE_URL}/api/reports`, {
             method: 'POST',
             body: report.formData
           });
